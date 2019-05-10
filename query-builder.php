@@ -21,7 +21,3 @@ class MatchQuery
         return $query;
     }
 }
-
-$wpdb = new stdClass();
-$wpdb->prefix = "wp_";
-print(MatchQuery::sql_builder($wpdb, array('title')));
