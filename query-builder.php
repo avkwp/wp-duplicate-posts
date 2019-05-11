@@ -17,7 +17,7 @@ class MatchQuery
             MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) <= {$score_max})");
             $idx++;
         }
-        $query .= "," . implode(",", $field_query) . "FROM `{$wpdb->prefix}posts AS pt` WHERE " . implode(" OR ", $where_query);
+        $query .= "," . implode(",", $field_query) . " FROM `{$wpdb->prefix}posts` AS pt WHERE " . implode(" OR ", $where_query);
         return $query;
     }
 }
