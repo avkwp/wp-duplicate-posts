@@ -1,0 +1,12 @@
+{
+    "name": "ashwinvijayakumar/duplicate-checks",
+    "authors": [
+        {
+            "name": "Aswin Vijayakumar",
+            "email": "aswin@chillibyte.co.uk"
+        }
+    ],
+    "require": {
+        "symfony/process": "^3.4"
+    }
+}

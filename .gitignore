@@ -4,7 +4,6 @@
 *.csv
 /node_modules/
 /tmp/
-composer.json
 composer.lock
 *.ipynb
 test.py

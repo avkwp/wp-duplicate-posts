@@ -1,5 +1,7 @@
 <?php
 
+namespace DuplicateChecks;
+
 class MatchQuery
 {
     const WEBSITE_ATTR = "website";

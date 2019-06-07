@@ -5,6 +5,8 @@ from rpc_helpers import get_code
 import base64
 import random
 from base.session import Session
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 import records
 
 MODE_FULL = 0
@@ -27,15 +29,16 @@ class Request(object):
         pass
 
   def share_outcome_attrs(self):
-    
+    pass
 
   def share_outcome_existing(self):
-    
+    pass
 
   def share_outcome_nonexisting(self):
-    
+    pass
 
   def resolve_duplicates(self):
+    pass
 
 class Api(Session, Request):
 
