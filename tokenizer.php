@@ -7,16 +7,17 @@ function tokenize_config($filename)
   $stop_tokens = [';'];
   $found_tokens = [];
   $state = false;
+  $parameters = array();
   foreach ($tokens as $token) {
     if (is_string($token)) {
         if(array_search($token, $search_tokens) !== false) {
           array_push($found_tokens, $token);
         } else if(count($found_tokens) >= 2) {
+          array_push($found_tokens, $token);
           $state = true;
         }
         if($state && array_search($token, $stop_tokens) !== false) {
-          array_push($found_tokens, $token);
-          return array_values(array_filter(preg_replace('\s+', "", $found_tokens)));
+          return array_values(array_filter(preg_replace('/\s+/', "", $found_tokens)));
         }
     } else {
         // token array
@@ -32,17 +33,17 @@ function tokenize_config($filename)
               if(array_search($token, $search_tokens) !== false) {
                 array_push($found_tokens, $token);
               } else if(count($found_tokens) >= 2) {
+                array_push($found_tokens, $token);
                 $state = true;
               }
               if($state && array_search($token, $stop_tokens) !== false) {
-                array_push($found_tokens, $token);
-                return array_values(array_filter(preg_replace('\s+', "", $found_tokens)));
+                return array_values(array_filter(preg_replace('/\s+/', "", $found_tokens)));
               }
               break;
         }
     }
   }
-  return array();
+  return $parameters;
 }
 
 /**
@@ -57,4 +58,15 @@ function search_root_directory($folder)
       return dirname($g[0]);
     }
   }
+  return "";
+}
+
+function get_wp_folders() {
+    $g = glob(SITES_PATH . DIRECTORY_SEPARATOR . '*');
+    return $g;
+}
+
+function get_wp_database_prefix($wp_config) {
+  $parameters = tokenize_config($wp_config);
+  return $parameters;
 }

@@ -1,0 +1,14 @@
+/nbproject/private/
+/nbproject/
+/vendor/
+*.csv
+/node_modules/
+/tmp/
+composer.json
+composer.lock
+*.ipynb
+test.py
+__pycache__/
+package-lock.json
+sqlite_test/
+sqlite/
