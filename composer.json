@@ -8,5 +8,9 @@
     ],
     "require": {
         "symfony/process": "^3.4"
+    },
+    "dist": {
+        "url": "https://chillibyte2013@bitbucket.org/chillibyte2013/duplicate-checks.git",
+        "type": "vcs"
     }
 }
