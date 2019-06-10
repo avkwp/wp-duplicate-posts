@@ -188,6 +188,17 @@ class Writer(object):
                 csvfile.flush()
                 csvfile.close()
 
+    def delete_contingency(self, session_id, tablename):
+        conn = self.db.get_conn()
+        try:
+            cursor = conn.cursor()
+            query = """DELETE FROM {tablename} WHERE session_token = '{session_id}'""".format(tablename=tablename, session_id=session_id)
+            cursor.execute(query)
+            cursor.close()
+            conn.commit()
+        except Exception as e:
+            print(e)
+    
     def write_contingency(self, rows, headers, tablename):
         conn = self.db.get_conn()
         try:
