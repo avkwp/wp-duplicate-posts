@@ -5,11 +5,20 @@ namespace DuplicateChecks;
 class MatchQuery
 {
     const WEBSITE_ATTR = "website";
+    static $instance;
+
+    public static function getInstance()
+    {
+        if(empty(static::$instance)) {
+            static::$instance = new MatchQuery();
+        }
+        return static::$instance;
+    }
     
     /**
      * 
      */
-    public static function sql_builder_match_all($wpdb, $titles, $meta_fields, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
+    public function sql_builder_match_all($wpdb, $titles, $meta_fields, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
     {
         if(empty($titles) || empty($meta_fields))
             throw new Exception("Titles missing, please pass as array()");
@@ -56,7 +65,7 @@ class MatchQuery
     /**
      * 
      */
-    public static function sql_builder_match_entry($wpdb, $ids, $titles, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
+    public function sql_builder_match_entry($wpdb, $ids, $titles, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
     {
         if(empty($titles) || empty($ids))
             throw new Exception("IDs / Titles missing, please pass as array()");
@@ -103,7 +112,7 @@ class MatchQuery
      * $attributes = ['post_title', 'website']
      * $meta_fields = ['address', 'website']
      */
-    public static function sql_builder_match_attribute($wpdb, $attributes, $meta_fields, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
+    public function sql_builder_match_attribute($wpdb, $attributes, $meta_fields, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
     {
         if(empty($attributes) || empty($ids))
             throw new Exception("Attributes missing, please pass as array()");

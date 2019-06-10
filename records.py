@@ -99,7 +99,7 @@ class ResolveDuplicates(object):
       return max_desc
 
     def matching_attrs_reducer(w):
-      return "|".join(self.score_df.loc[self.score_df.website_1 == w, 'ID1'].values.tolist())
+      return "|".join(self.score_df.loc[self.score_df.website_1 == w, 'ID1'].values.astype(str).tolist())
       
     if not contains_id:
       s = np.vectorize(split_reducer)
@@ -141,6 +141,7 @@ class ResolveDuplicates(object):
     
     i = 0
     rows = []
+    writer.delete_contingency(session_id, 'table_contingency_duplicates')
     for idx, row in self.score_df.loc[:, cols].iterrows():
       _cols = row.index.intersection(cols).values.tolist() + ['session_token']
       values = row.values
@@ -162,6 +163,7 @@ class ResolveDuplicates(object):
 
     i = 0
     rows = []
+    writer.delete_contingency(session_id, 'table_contingency_entries')
     for idx, row in self.original_df.loc[:, cols].iterrows():
       _cols = row.index.intersection(cols).values.tolist() + ['session_token']
       values = row.values
