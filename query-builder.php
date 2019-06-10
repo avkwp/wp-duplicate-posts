@@ -20,9 +20,7 @@ class MatchQuery
         $field_query = [];
         $where_query = [];
         $on1_query = [];
-        $on2_query = [];
         $meta_field1_append = [];
-        $meta_field2_append = [];
         $idx = 0;
         $queryAppend = "pt.post_type = '{$post_type}'";
         if(!empty($post_status)) {
@@ -31,12 +29,10 @@ class MatchQuery
         foreach($meta_fields as $meta_field) {
             array_push($on1_query, "(ptmeta1.meta_key = '{$meta_field}' AND ptmeta1.post_id = pt1.ID)");
             array_push($meta_field1_append, "IF(ptmeta1.meta_key = '{$meta_field}', TRIM(ptmeta1.meta_value), '') AS {$meta_field}_1");
-            array_push($meta_field2_append, "IF(ptmeta2.meta_key = '{$meta_field}', TRIM(ptmeta2.meta_value), '') AS {$meta_field}_2");
         }
         $on1_query = implode(' OR ', $on1_query);
 
         $meta_field1_append = implode(',', $meta_field1_append);
-        $meta_field2_append = implode(',', $meta_field2_append);
         foreach($titles as $title) {
             $q = "(MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) >= {$score_min}";
             if(!empty($score_max)) {
@@ -46,7 +42,7 @@ class MatchQuery
             array_push($where_query, $q);
             $idx++;
         }
-        $query .= ", {$meta_field1_append}, {$meta_field2_append}, " .
+        $query .= ", {$meta_field1_append}, " .
         implode(",", $field_query) . 
         " FROM `{$wpdb->prefix}posts` AS pt 
         LEFT JOIN `{$wpdb->prefix}postmeta` AS ptmeta1 ON ({$on1_query})
