@@ -1,5 +1,6 @@
 {
     "name": "ashwinvijayakumar/duplicate-checks",
+    "version": "1.0.0",
     "authors": [
         {
             "name": "Aswin Vijayakumar",
@@ -9,8 +10,10 @@
     "require": {
         "symfony/process": "^3.4"
     },
-    "dist": {
-        "url": "https://chillibyte2013@bitbucket.org/chillibyte2013/duplicate-checks.git",
-        "type": "vcs"
+    "autoload": {
+        "files": ["query_builder.php"],
+        "psr-4": {
+            "DuplicateChecks\\": "/"
+        }
     }
 }

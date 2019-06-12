@@ -151,6 +151,7 @@ class ResolveDuplicates(object):
 
     i = 0
     rows = []
+    writer.delete_contingency(session_id, 'table_contingency_duplicates')
     for idx, row in self.score_df.loc[:, cols].iterrows():
       _cols = row.index.intersection(cols).values.tolist() + ['session_token']
       values = row.values
@@ -172,6 +173,7 @@ class ResolveDuplicates(object):
 
     i = 0
     rows = []
+    writer.delete_contingency(session_id, 'table_contingency_entries')
     for idx, row in self.original_df.loc[:, cols].iterrows():
       _cols = row.index.intersection(cols).values.tolist() + ['session_token']
       values = row.values
