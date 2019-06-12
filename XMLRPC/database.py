@@ -150,10 +150,10 @@ class HostDatabase(object):
     def __init__(self, dbname):
         self.config = configparser.ConfigParser()
         self.config.read_file(open(os.path.join(os.path.dirname(__file__), '../', 'database.ini')))
-        self.conn = MySQLdb.connect(host=self.config['database']['host'], 
-        user=self.config['database']['user'], 
-        passwd=self.config['database']['password'], 
-        port=int(self.config['database']['port']), 
+        self.conn = MySQLdb.connect(host=self.config[dbname]['host'], 
+        user=self.config[dbname]['user'], 
+        passwd=self.config[dbname]['password'], 
+        port=int(self.config[dbname]['port']), 
         db=dbname)
 
     def get_cursor(self, cursor):
