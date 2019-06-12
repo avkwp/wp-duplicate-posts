@@ -6,11 +6,11 @@ import hashlib
 import configparser
 import csv
 import os
+import pandas as pd
 
 class LocalDatabase(object):
 
     def __init__(self, db_file):
-        print(os.fspath(db_file))
         self.conn = sqlite3.connect(db_file)
 
     def get_cursor(self, cursor):
@@ -78,12 +78,11 @@ class LocalDatabase(object):
             status = 'issued'
             cursor.execute("""
             INSERT INTO session (project_code, unit_code, session_id, 
-            status, expiry) VALUES 
-            ('{project_code}', '{unit_code}', '{session_id}', '{status}', '{expiry}')
+            status) VALUES 
+            ('{project_code}', '{unit_code}', '{session_id}', '{status}')
             """.format(
                 project_code=project_code, unit_code=unit_code,
-                session_id=session_id, status=status,
-                expiry=time.time() + 604800))
+                session_id=session_id, status=status))
             self.conn.commit()
             result = cursor.rowcount
             cursor.close()
@@ -172,22 +171,45 @@ class Writer(object):
     def __init__(self, db, to_file = 'output.csv'):
         self.to_file = to_file
         self.db = db
+        self.to_df = None
+    
+    def write_to_df(self, sql_query):
+        conn = self.db.get_conn()
+        conn.query(sql_query)
+        r = conn.store_result()
+        data = r.fetch_row(maxrows=1, how=1)
+        if(len(data) > 0):
+            self.to_df = pd.DataFrame(columns=list(data[0].keys()))
+            while (len(data) > 0):
+                self.to_df = self.to_df.append(data[0], ignore_index=True)
+                data = r.fetch_row(maxrows=1, how=1)
     
     def write_to_csv(self, sql_query):
         conn = self.db.get_conn()
         conn.query(sql_query)
         r = conn.store_result()
         data = r.fetch_row(maxrows=1, how=1)
-        if(data):
-            with open(self.to_file, 'w', newline='') as csvfile:
-                writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(list(data.keys()))
-                while (data):
-                    writer.writerow(list(data.values()))
+        if(len(data) > 0):
+            with open(self.to_file, 'w', encoding='utf-8', newline=None) as csvfile:
+                writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+                writer.writerow(list(data[0].keys()))
+                while (len(data) > 0):
+                    writer.writerow(list(data[0].values()))
                     data = r.fetch_row(maxrows=1, how=1)
                 csvfile.flush()
                 csvfile.close()
 
+    def delete_contingency(self, session_id, tablename):
+        conn = self.db.get_conn()
+        try:
+            cursor = conn.cursor()
+            query = """DELETE FROM {tablename} WHERE session_token = '{session_id}'""".format(tablename=tablename, session_id=session_id)
+            cursor.execute(query)
+            cursor.close()
+            conn.commit()
+        except Exception as e:
+            print(e)
+    
     def write_contingency(self, rows, headers, tablename):
         conn = self.db.get_conn()
         try:
@@ -196,7 +218,7 @@ class Writer(object):
             headers = ",".join(headers)
             query = """INSERT INTO {tablename} ({headers})
             VALUES ({placeholder})""".format(headers=headers, placeholder=placeholder, tablename=tablename)
-            print(cursor.executemany(query,rows))
+            cursor.executemany(query, rows)
             cursor.close()
             conn.commit()
         except Exception as e:

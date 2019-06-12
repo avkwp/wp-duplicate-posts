@@ -5,11 +5,20 @@ namespace DuplicateChecks;
 class MatchQuery
 {
     const WEBSITE_ATTR = "website";
+    static $instance;
+
+    public static function getInstance()
+    {
+        if(empty(static::$instance)) {
+            static::$instance = new MatchQuery();
+        }
+        return static::$instance;
+    }
     
     /**
      * 
      */
-    public static function sql_builder_match_all($wpdb, $titles, $meta_fields, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
+    public function sql_builder_match_all($wpdb, $titles, $meta_fields, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
     {
         if(empty($titles) || empty($meta_fields))
             throw new Exception("Titles missing, please pass as array()");
@@ -20,33 +29,29 @@ class MatchQuery
         $field_query = [];
         $where_query = [];
         $on1_query = [];
-        $on2_query = [];
         $meta_field1_append = [];
-        $meta_field2_append = [];
         $idx = 0;
         $queryAppend = "pt.post_type = '{$post_type}'";
         if(!empty($post_status)) {
             $queryAppend .= " AND pt.post_status = '{$post_status}'";
         }
         foreach($meta_fields as $meta_field) {
-            array_push($on1_query, "(ptmeta1.meta_key = '{$meta_field}' AND ptmeta1.post_id = pt1.ID)");
+            array_push($on1_query, "(ptmeta1.meta_key = '{$meta_field}' AND ptmeta1.post_id = pt.ID)");
             array_push($meta_field1_append, "IF(ptmeta1.meta_key = '{$meta_field}', TRIM(ptmeta1.meta_value), '') AS {$meta_field}_1");
-            array_push($meta_field2_append, "IF(ptmeta2.meta_key = '{$meta_field}', TRIM(ptmeta2.meta_value), '') AS {$meta_field}_2");
         }
         $on1_query = implode(' OR ', $on1_query);
 
         $meta_field1_append = implode(',', $meta_field1_append);
-        $meta_field2_append = implode(',', $meta_field2_append);
         foreach($titles as $title) {
-            $q = "(MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) >= {$score_min}";
+            $q = "(MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) >= {$score_min})";
             if(!empty($score_max)) {
                 $q .= " AND MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) <= {$score_max})";
             }
-            array_push($field_query, "MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) AS {$idx}");
+            array_push($field_query, "MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) AS '{$idx}'");
             array_push($where_query, $q);
             $idx++;
         }
-        $query .= ", {$meta_field1_append}, {$meta_field2_append}, " .
+        $query .= ", {$meta_field1_append}, " .
         implode(",", $field_query) . 
         " FROM `{$wpdb->prefix}posts` AS pt 
         LEFT JOIN `{$wpdb->prefix}postmeta` AS ptmeta1 ON ({$on1_query})
@@ -60,7 +65,7 @@ class MatchQuery
     /**
      * 
      */
-    public static function sql_builder_match_entry($wpdb, $ids, $titles, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
+    public function sql_builder_match_entry($wpdb, $ids, $titles, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
     {
         if(empty($titles) || empty($ids))
             throw new Exception("IDs / Titles missing, please pass as array()");
@@ -107,7 +112,7 @@ class MatchQuery
      * $attributes = ['post_title', 'website']
      * $meta_fields = ['address', 'website']
      */
-    public static function sql_builder_match_attribute($wpdb, $attributes, $meta_fields, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
+    public function sql_builder_match_attribute($wpdb, $attributes, $meta_fields, $post_type, $post_status = "", $score_min = 10, $score_max = 0, $tag_separator = ".")
     {
         if(empty($attributes) || empty($ids))
             throw new Exception("Attributes missing, please pass as array()");
