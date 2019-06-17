@@ -45,8 +45,9 @@ class ResolveDuplicates(object):
     self.score_append_original_df()
     def join_list(a):
       return "|".join(self.score_df.loc[self.score_df.variable == a, 'ID1'].values.astype(str).tolist())
-    for reducer in reducers:
-      reducer(contains_id)
+    if len(self.score_df) > 0:
+      for reducer in reducers:
+        reducer(contains_id)
     join_vector = np.vectorize(join_list)
     self.original_df['reducer_post_ids'] = join_vector(range(self.original_df.shape[0]))
     
@@ -56,36 +57,39 @@ class ResolveDuplicates(object):
     self.original_df.loc[(self.original_df.loc[:, 'ID1'].astype(str) == 'nan'), 'join_post_ids'] = 0
     self.original_df['join_post_ids'] = self.original_df['join_post_ids'].astype(np.int64)
 
-    for post_reducer in post_reducers:
-      post_reducer(contains_id)
+    if len(self.score_df) > 0:
+      for post_reducer in post_reducers:
+        post_reducer(contains_id)
     
     return None
 
   # returns appended data, description comparison and terms comparison to merge
   def reduce_by_constraints(self, original_df = None, contains_id = False):
     if(contains_id):
-      # setting term constraints
-      self.score_df['term1_constraint'] = 1
-      self.score_df['term2_constraint'] = 1
-      self.score_df.loc[self.score_df.Terms1.astype(str) == 'nan', 'term1_constraint'] = 0
-      self.score_df.loc[self.score_df.Terms2.astype(str) == 'nan', 'term2_constraint'] = 0
+      if len(self.score_df) > 0:
+        # setting term constraints
+        self.score_df['term1_constraint'] = 1
+        self.score_df['term2_constraint'] = 1
+        self.score_df.loc[self.score_df.Terms1.astype(str) == 'nan', 'term1_constraint'] = 0
+        self.score_df.loc[self.score_df.Terms2.astype(str) == 'nan', 'term2_constraint'] = 0
 
-      # setting description constraints
-      self.score_df['desc1_constraint'] = 0
-      self.score_df['desc2_constraint'] = 0
-      self.score_df.loc[self.score_df.Description_length1 > self.score_df.Description_length2, 'desc1_constraint'] = 1
-      self.score_df.loc[self.score_df.Description_length2 >= self.score_df.Description_length1, 'desc2_constraint'] = 1
+        # setting description constraints
+        self.score_df['desc1_constraint'] = 0
+        self.score_df['desc2_constraint'] = 0
+        self.score_df.loc[self.score_df.Description_length1 > self.score_df.Description_length2, 'desc1_constraint'] = 1
+        self.score_df.loc[self.score_df.Description_length2 >= self.score_df.Description_length1, 'desc2_constraint'] = 1
 
     else:
-      l = np.vectorize(len)
-      desc = self.score_df.loc[:, 'Description'].astype(str)
-      desc.loc[desc == 'nan'] = ""
-      # assumes the score_df to be appended
-      self.score_df['Description_length'] = l(desc)
-      self.score_df['desc1_constraint'] = 0
-      self.score_df['desc2_constraint'] = 0
-      self.score_df.loc[self.score_df.Description_length1 > self.score_df.Description_length, 'desc1_constraint'] = 1
-      self.score_df.loc[self.score_df.Description_length >= self.score_df.Description_length1, 'desc2_constraint'] = 1
+      if len(self.score_df) > 0:
+        l = np.vectorize(len)
+        desc = self.score_df.loc[:, 'Description'].astype(str)
+        desc.loc[desc == 'nan'] = ""
+        # assumes the score_df to be appended
+        self.score_df['Description_length'] = l(desc)
+        self.score_df['desc1_constraint'] = 0
+        self.score_df['desc2_constraint'] = 0
+        self.score_df.loc[self.score_df.Description_length1 > self.score_df.Description_length, 'desc1_constraint'] = 1
+        self.score_df.loc[self.score_df.Description_length >= self.score_df.Description_length1, 'desc2_constraint'] = 1
 
     return None
 
@@ -139,7 +143,7 @@ class ResolveDuplicates(object):
 
     self.score_df['matching_attrs'] = 0
 
-  def resolve_duplicates(self, session_id, writer, contingency_write=False):
+  def resolve_duplicates(self, session_id, writer, contingency_write=False, feed=''):
     cols = ['ID1', 'Title1', 'ID2', 'Title2', 'Terms1', 'Terms2', 
     'Description_length1', 'Description_length2', 'Description_length', 'Terms',
     'address_1', 'website_1', 'address_2', 'website_2', 
@@ -153,16 +157,16 @@ class ResolveDuplicates(object):
     rows = []
     writer.delete_contingency(session_id, 'table_contingency_duplicates')
     for idx, row in self.score_df.loc[:, cols].iterrows():
-      _cols = row.index.intersection(cols).values.tolist() + ['session_token']
+      _cols = row.index.intersection(cols).values.tolist() + ['session_token', 'feed']
       values = row.values
       np.place(values, values.astype(str) == 'nan', None)
       if (i % CHUNK_SIZE == 0):
         if(len(rows) != 0):
           writer.write_contingency(rows, _cols, 'table_contingency_duplicates') # write executemany
         rows = []
-        rows.append(tuple(values.tolist() + [session_id]))
+        rows.append(tuple(values.tolist() + [session_id, feed]))
       else:
-        rows.append(tuple(values.tolist() + [session_id]))
+        rows.append(tuple(values.tolist() + [session_id, feed]))
       i += 1
     if(len(rows) != 0):
       writer.write_contingency(rows, _cols, 'table_contingency_duplicates') # write executemany
@@ -175,16 +179,16 @@ class ResolveDuplicates(object):
     rows = []
     writer.delete_contingency(session_id, 'table_contingency_entries')
     for idx, row in self.original_df.loc[:, cols].iterrows():
-      _cols = row.index.intersection(cols).values.tolist() + ['session_token']
+      _cols = row.index.intersection(cols).values.tolist() + ['session_token', 'feed']
       values = row.values
       np.place(values, values.astype(str) == 'nan', None)
       if (i % CHUNK_SIZE == 0):
         if(len(rows) != 0):
           writer.write_contingency(rows, _cols, 'table_contingency_entries') # write executemany
         rows = []
-        rows.append(tuple(values.tolist() + [session_id]))
+        rows.append(tuple(values.tolist() + [session_id, feed]))
       else:
-        rows.append(tuple(values.tolist() + [session_id]))
+        rows.append(tuple(values.tolist() + [session_id, feed]))
       i += 1
     if(len(rows) != 0):
       writer.write_contingency(rows, _cols, 'table_contingency_entries') # write executemany

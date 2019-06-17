@@ -8,6 +8,7 @@ from base.session import Session
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 import records, traceback
+import json
 
 MODE_FULL = 0
 MODE_OUTCOME = 1
@@ -37,21 +38,25 @@ class Api(Session, Request):
     def set_host(self, dbname):
         self.host_db = HostDatabase(dbname)
     
-    def register_request(self, mode, dbname=None, sql=None, filename=None, num_cols_start=6):
+    def register_request(self, mode, dbname=None, sql=None, filename=None, num_cols_start=6, feed='', keys=None):
       try:
         if((sql is not None) and (dbname is not None)):
             self.set_host(dbname)
             writer = Writer(self.host_db)
-            writer.write_to_df(sql)
+            if keys:
+              keys = list(json.JSONDecoder().decode(keys).keys())
+              writer.write_to_df(sql, keys)
+            else:
+              writer.write_to_df(sql)
         elif filename is not None:
             pass
         if(mode == MODE_FULL):
             resolve = records.set_original_and_score(num_cols_start, filename, writer.to_df)
             resolve().resolve_duplicates(writer=writer, contingency_write=True)
         elif(mode == MODE_FEED):
-            session_id = self.obtainSession(True, "reshoringuk", "feed", None, "")
+            session_id = self.obtainSession(True, feed, "feed", None, "")
             resolve = records.set_feed_and_score(num_cols_start, filename, writer.to_df)
-            resolve().resolve_duplicates(session_id, writer=writer, contingency_write=True)
+            resolve().resolve_duplicates(session_id, writer=writer, contingency_write=True, feed=feed)
             return session_id
         else:
             pass

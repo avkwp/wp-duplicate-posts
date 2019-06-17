@@ -173,7 +173,7 @@ class Writer(object):
         self.db = db
         self.to_df = None
     
-    def write_to_df(self, sql_query):
+    def write_to_df(self, sql_query, keys=None):
         conn = self.db.get_conn()
         conn.query(sql_query)
         r = conn.store_result()
@@ -183,6 +183,8 @@ class Writer(object):
             while (len(data) > 0):
                 self.to_df = self.to_df.append(data[0], ignore_index=True)
                 data = r.fetch_row(maxrows=1, how=1)
+        else:
+            self.to_df = pd.DataFrame(columns=keys)
     
     def write_to_csv(self, sql_query):
         conn = self.db.get_conn()
