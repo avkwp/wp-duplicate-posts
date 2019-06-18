@@ -233,10 +233,10 @@ def set_original_and_score(num_cols_start, original_filename, score_filename):
     return resolve
   return ret
 
-def set_feed_and_score(num_cols_start, original_filename, score_df):
+def set_feed_and_score(num_cols_start, original_filename, score_df, score=MELT_SCORE):
   original_df = create_original_df(original_filename)
   score_df = create_score_df_title(score_df, original_df, num_cols_start)
-  score_big_df = melt_df(score_df, num_cols_start)
+  score_big_df = melt_df(score_df, num_cols_start, score)
   def ret(resolver=ResolveDuplicates):
     resolve = resolver(score_big_df, original_df, mode = 'None')
     resolve.original_append_id_df(

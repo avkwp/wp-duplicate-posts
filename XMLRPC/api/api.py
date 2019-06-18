@@ -38,7 +38,7 @@ class Api(Session, Request):
     def set_host(self, dbname):
         self.host_db = HostDatabase(dbname)
     
-    def register_request(self, mode, dbname=None, sql=None, filename=None, num_cols_start=6, feed='', keys=None):
+    def register_request(self, mode, dbname=None, sql=None, filename=None, num_cols_start=6, feed='', keys=None, score=records.MELT_SCORE):
       try:
         if((sql is not None) and (dbname is not None)):
             self.set_host(dbname)
@@ -55,7 +55,7 @@ class Api(Session, Request):
             resolve().resolve_duplicates(writer=writer, contingency_write=True)
         elif(mode == MODE_FEED):
             session_id = self.obtainSession(True, feed, "feed", None, "")
-            resolve = records.set_feed_and_score(num_cols_start, filename, writer.to_df)
+            resolve = records.set_feed_and_score(num_cols_start, filename, writer.to_df, score)
             resolve().resolve_duplicates(session_id, writer=writer, contingency_write=True, feed=feed)
             return session_id
         else:

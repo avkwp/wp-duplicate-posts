@@ -5,7 +5,7 @@ import time
 import hashlib
 import configparser
 import csv
-import os
+import os, traceback
 import pandas as pd
 
 class LocalDatabase(object):
@@ -155,6 +155,7 @@ class HostDatabase(object):
         passwd=self.config[dbname]['password'], 
         port=int(self.config[dbname]['port']), 
         db=dbname)
+        self.conn.set_character_set('utf8')
 
     def get_cursor(self, cursor):
         cursor.close()
@@ -224,4 +225,5 @@ class Writer(object):
             cursor.close()
             conn.commit()
         except Exception as e:
-            print(e)
+            print(traceback.print_tb(e.__traceback__))
+            print(e, tablename)
