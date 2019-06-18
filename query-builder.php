@@ -23,7 +23,7 @@ class MatchQuery
         if(empty($titles) || empty($meta_fields))
             throw new Exception("Titles missing, please pass as array()");
 
-        $query = "SELECT pt.ID AS ID1, pt.post_title AS Title1, LENGTH(pt.post_content) AS Description_length1, 
+        $query = "SELECT pt.ID AS ID1, ptmeta2.meta_value AS Title1, LENGTH(pt.post_content) AS Description_length1, 
         GROUP_CONCAT(DISTINCT CONCAT_WS('{$tag_separator}', terms.name, taxonomy.taxonomy) ORDER BY taxonomy.taxonomy SEPARATOR '|')
         AS Terms1";
         $field_query = [];
@@ -55,6 +55,7 @@ class MatchQuery
         implode(",", $field_query) . 
         " FROM `{$wpdb->prefix}posts` AS pt 
         LEFT JOIN `{$wpdb->prefix}postmeta` AS ptmeta1 ON ({$on1_query})
+        INNER JOIN `{$wpdb->prefix}postmeta` AS ptmeta2 ON (ptmeta2.meta_key = 'codename' AND ptmeta2.post_id = pt.ID)
         INNER JOIN `{$wpdb->prefix}term_relationships` AS rel ON rel.object_id = pt.ID
         INNER JOIN `{$wpdb->prefix}term_taxonomy` AS taxonomy ON taxonomy.term_taxonomy_id = rel.term_taxonomy_id
         INNER JOIN `{$wpdb->prefix}terms` AS terms ON terms.term_id = rel.term_taxonomy_id
