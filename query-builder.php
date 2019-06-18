@@ -44,7 +44,7 @@ class MatchQuery
         $meta_field1_append = implode(',', $meta_field1_append);
         foreach($titles as $title) {
             $lower = trim(strtolower($title));
-            $q = "(MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) >= {$score_min}) OR (TRIM(LOWER(ptmeta2.meta_value)) = '{$lower}'))";
+            $q = "(MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) >= {$score_min}) OR (TRIM(LOWER(ptmeta2.meta_value)) = '{$lower}')";
             if(!empty($score_max)) {
                 $q .= " AND MATCH pt.post_title AGAINST ('{$title}' IN NATURAL LANGUAGE MODE) <= {$score_max})";
             }
